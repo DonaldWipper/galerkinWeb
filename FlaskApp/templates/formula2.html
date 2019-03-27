@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>MathJax example</title>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async>
+
+
+    </script>
+
+</head>
+{% raw %}
+<body>
+    <h1><b>
+Выбор потоков при решении дифференциальных уравнений разрывным
+методом Галеркина.</b>
+    </h1>
+    
+    <h2>
+        Введение.
+    </h2>
+
+    <p>Данная работа посвящена обзорному исследованию разрывного метода Галеркина (РМГ) или Discontinuous Galerkin Method (DMG), который характеризуется высоким уровнем точности получаемого решения. Основное внимание в этой статье уделено анализу выбора численных потоков при реализации метода Галеркина для решения нескольких типов дифференциальных уравнений. Для исследования были взяты потоки Басси-Ребея, LDG, а также поток, который не рассматривался раньше в других работах. Полученные результаты сравнивались с результатами работы Кирби. В качестве инструмента исследования были взяты модельные задачи уравнений теплопроводности, конвекции диффузии, Бюргерса, для которых известны точные решения. Сходимость приближенного решения к точному была исследована в двух нормах ${L_1}$ и ${L_2}$. Также были были проанализированы порядки сходимости в этих нормах.</p>
+
+    <h2>
+        Метод Галеркина с разрывными базисными функциями для решения дифференциальных уравнений в частных производных
+    </h2>
+
+    <p>Рассмотрим некоторую одномерную задачу, которая описывается дифференциальным уравнением вида $$ \frac{{\partial U}}{{\partial t}} + \frac{{\partial F(U)}}{{\partial x}} = 0, (1) $$ на сегменте $[a,b]$. Уравнение дополнено некоторыми начальными и граничными условиями, вид которых зависит от конкретной задачи. Введем на равномерную сетку с узлами {$ { {x_{j + 0.5}}\} _{j = 0}^N }$. Обозначим $ {I_j} = ({x_{j + 0.5}}$ , ${x_{j - 0.5}}), {\Delta _j} = {x_{j + 0.5}} - {x_{j - 0.5}}$, $j = \overline {1,N}$. Приближенное решение уравнения (1) будем искать в виде проекции вектора переменных на пространство полиномов $P(x)$ степени $p$ в базисе ${ {\phi _k}(x)}$ с зависящими от времени коэффициентами ${U_h}(x,t) = \sum\limits_{k = 0}^p {{U_k}} (t){\phi _k}(x)$.
+    </p>
+
+    <p>
+        Коэффициенты ищутся из условия ортогональности невязки уравнения $R(x) = \frac{{\partial {U_h}}}{{\partial t}} + \frac{{\partial F({U_h})}}{{\partial x}}$ базисным функциям ${\phi _k}(x)$на каждом сегменте сетки. В итоге, приходим к системе уравнений: $$\int\limits_{{I_j}} {{\partial _t}} {U_h}(x,t) \cdot {\phi _k}(x)dx - \int\limits_{{I_j}} {F({U_h}} (x,t)) \cdot {\partial _x}{\phi _k}(x)dx + {F_{i + 1/2}} \cdot {\phi _k}(x_{i + 1/2}^ - ) - {F_{i - 1/2}} \cdot {\phi _k}(x_{i + 1/2}^ + ) = 0 $$ Функция ${U_h}$ является разрывной на границах элементов сетки. Для того, чтобы посчитать граничный интеграл от функции ${F}$, мы должны заменить функцию ${F}$ функцией граничного численного потока ${H}$ , которая зависит от обоих граничных состояний и которая представляет связь между неизвестными из соседних элементов, в противном случае она была бы полностью утрачена. Целью этой работы заключается анализ целесообразности выбора той или иной потоковой функуции для решения дифференциальных уравнений разрывным методом Галеркина.
+
+    </p>
+    <p>Рассмотрим уравнение вида $$\frac{{\partial U}}{{\partial t}} + \frac{{\partial F(U)}}{{\partial x}} = \frac{{{\partial ^2}U}}{{\partial {x^2}}}$$ , также дополненное некоторыми начальными и краевыми условиями. Сведем это уравнение второго порядка к системе уравнений первого порядка $$q - \frac{{\partial U(x,t)}}{{\partial x}} = 0$$ $$\frac{{\partial U(x,t)}}{{\partial t}} + \frac{{\partial F(U)}}{{\partial x}} = \frac{{\partial q(x,t)}}{{\partial x}}$$ Проводя рассуждения для нахождения приближенного решения, аналогичные указанным выше, приходим к следующей системе: $$\int\limits_{{I_j}} {q(x) \cdot {\phi _k}(x)} dx + {U_{i + 1/2}} \cdot {\phi _k}({x_{i + 1/2}}) - {U_{i - 1/2}} \cdot {\phi _k}({x_{i - 1/2}}) - \int\limits_{{I_j}} {U(x) \cdot \frac{{\partial {\phi _k}(x)}}{{\partial x}}dx} = 0 $$ $$\int\limits_{{I_j}} {\frac{{\partial U(x)}}{{\partial t}} \cdot {\phi _k}(x)} dx - \int\limits_{{I_j}} {F({U_h}(x,t))\frac{{\partial {\phi _k}(x)}}{{\partial x}}dx} + {F_{i + 1/2}} \cdot {\phi _k}(x_{i + 1/2}^ - ) - {F_{i - 1/2}} \cdot {\phi _k}(x_{i - 1/2}^ + ) = {\widehat{q_{i + 1/2}}} \cdot {\phi _k}({x_{i + 1/2}}) - {\widehat{q_{i - 1/2}}} \cdot {\phi _k}({x_{i - 1/2}}) - \int\limits_{{I_j}} {q(x) \cdot \frac{{\partial {\phi _k}(x)}}{{\partial x}}} dx (5.2) $$
+    </p>
+    <p>
+        В нашей работе потоковые функции $\widehat {{q_h}}$ и $\widehat {{u_h}}$ берутся из списка, указанного ниже:
+    </p>
+
+    <p>
+        1) Поток <b>Басси-Ребея</b> ${\widehat u_h} = \frac{{{u^ + } + {u^ - }}}{2}, {\widehat q_h} = \frac{{{q^ + } + {q^ - }}}{2} (6.1) $
+    </p>
+
+    <p>
+        2) <b>LDG Local Discontinuous</b> Galerkin -поток ${\widehat u_h} = {u^ + }, {\widehat q_h} = {q^ - } (6.2) $;
+    </p>
+
+    <p>
+        3) $\widehat {{q_h}} = \frac{{{q^ + } + {q^ - }}}{2} + C({u^ + } - {u^ - }),\widehat {{u_h}} = \frac{{{u^ + } + {u^ - }}}{2} (6.2) $. Выбору константы С будет посвящено отдельная часть нашего исследования;
+    </p>
+
+    <p>
+        4)$\widehat {{q_h}} = \frac{{{q^ + } + {q^ - }}}{2} + \left| {\frac{{{q^ + } + {q^ - }}}{{\left| {{u^ + }} \right| + \left| {{u^ - }} \right|}}} \right|*({u^ + } - {u^ - }), \widehat {{u_h}} = \frac{{{u^ + } + {u^ - }}}{2} (6.3) $
+    </p>
+
+
+
+    <h2>
+        Модельные задачи.
+    </h2>
+
+
+    Применение разрывного метода Галеркина мы рассмотрим на модельных одномерных задачах для следующих уравнений:
+
+    <p>
+        1) Уравнение теплопроводности $\frac{{\partial u(x,t)}}{{\partial t}} = \frac{{{\partial ^2}u(x,t)}}{{\partial {x^2}}},x \in (0,2\pi )$ с периодичными граничными условиями $u(x,t) =u(x+2\pi,t)=u(x-2\pi,t)$ и начальным условием $u(x,t = 0) = sin (x)$ Для уравнение теплопроводности уравнение (5.1) остается прежним. Уравнение же (5.2) будет иметь вид: $$\int\limits_{{I_j}} {\frac{{\partial u_h(x)}}{{\partial t}} \cdot {\phi _k}(x)} dx = {\widehat{q_{i + 1/2}}} \cdot {\phi _k}({x_{i + 1/2}}) - {\widehat{q_{i - 1/2}}} \cdot {\phi _k}({x_{i - 1/2}}) - \int\limits_{{I_j}} {q_h(x) \cdot \frac{{\partial {\phi _k}(x)}}{{\partial x}}} dx (7.1) $$
+    </p>
+
+    <p>
+        2)Уравнение конвекции диффузии $\frac{{\partial u(x,t)}}{{\partial t}} + \frac{{\partial u(x,t)}}{{\partial x}} = \frac{{{\partial ^2}u(x,t)}}{{\partial {x^2}}},x \in ( - \pi ,\pi ) $ c периодичными граничными условиями и начальным условием $u(x,t = 0) = -sin (x)$. Уравнение (5.2) перепишется в виде: $\int\limits_{{I_j}} {\frac{{\partial u_h(x)}}{{\partial t}} \cdot {\phi _k}(x)} dx - \int\limits_{{I_j}} {u_h(x,t))\frac{{\partial {\phi _k}(x)}}{{\partial x}}dx} + {\widehat{u_{i + 1/2}}} \cdot {\phi _k}(x_{i + 1/2}^ - ) - {\widehat{u_{i - 1/2}}} \cdot {\phi _k}(x_{i - 1/2}^ + ) = {\widehat{q_{i + 1/2}}} \cdot {\phi _k}({x_{i + 1/2}}) - {\widehat{q_{i - 1/2}}} \cdot {\phi _k}({x_{i - 1/2}}) - \int\limits_{{I_j}} {q_h(x) \cdot \frac{{\partial {\phi _k}(x)}}{{\partial x}}} dx $(7.2)
+    </p>
+
+    <p>
+        3)Уравнение Бюргерса $\frac{{\partial u(x,t)}}{{\partial t}} + u\frac{{\partial u(x,t)}}{{\partial x}} = \frac{{{\partial ^2}u(x,t)}}{{\partial {x^2}}},x \in ( -\pi,\pi) $ С периодичными граничными условиями и начальным условием $u(x,t = 0) = -sin (x)$. $F(u(x,t))=u\frac{{\partial u(x,t)}}{{\partial x}}=0.5\frac{{\partial u^2(x,t)}}{{\partial x}}$, поэтому уравнение (5.2) для этого уравнения выглядит, как: $\int\limits_{{I_j}} {\frac{{\partial u_h(x)}}{{\partial t}} \cdot {\phi _k}(x)} dx - \int\limits_{{I_j}} {0.5{u^2_h}(x,t)\frac{{\partial {\phi _k}(x)}}{{\partial x}}dx} + {F_{i + 1/2}} \cdot {\phi _k}(x_{i + 1/2}^ - ) - {F_{i - 1/2}} \cdot {\phi _k}(x_{i - 1/2}^ + ) = {\widehat{q_{i + 1/2}}} \cdot {\phi _k}({x_{i + 1/2}}) - {\widehat{q_{i - 1/2}}} \cdot {\phi _k}({x_{i - 1/2}}) - \int\limits_{{I_j}} {q_h(x) \cdot \frac{{\partial {\phi _k}(x)}}{{\partial x}}} dx $
+
+    </p>
+
+    Потоковая функция $\widehat{F}$ на границах сегментов берется в виде $\widehat{F}=\frac{F^{+}+F^{-}}{2}-C\frac{u^{+}-u^{-}}{2}=\frac{0.5u^{+}*u^{+}+0.5u^{-}*u^{-}}{2}-C\frac{u^{+}-u^{-}}{2}, $ $C=max(|u^{+}|,|u^{-}|)$ Все граничные интегралы считаются при помощи квадратурных формул Гаусса достаточной точности.
+
+    <h2> Сходимость. </h2>
+
+    <section>
+        Для нашего исследования мы рассмотрим равномерную сетку по пространству с количеством элементов (10, 20, 40, 80, 160) и порядком полиномиальных функций от $P=1$ до $P=4$. Приближеннное решение модельных задач рассматривается для времени $T=0.7$, используя разностный метод Рунге-Кутта 4-го порядка, с шагом по времени $\Delta{t}=10^{-5}$. Сходимость исследуется в нормах $L_1$ и $L_2$. Также анализируется порядок сходимости в этих же нормах.
+    </section>
+    {% endraw %}
+    <body>
+        <script>
+            var expanded = false;
+
+            function showCheckboxes() {
+                var checkboxes = document.getElementById("checkboxes");
+                if (!expanded) {
+                    checkboxes.style.display = "block";
+                    expanded = true;
+                } else {
+                    checkboxes.style.display = "none";
+                    expanded = false;
+                }
+            }
+
+        </script>
+
+        <style>
+            .multiselect {
+                width: 200px;
+            }
+
+            .selectBox {
+                position: relative;
+            }
+
+            .selectBox select {
+                width: 100%;
+                font-weight: bold;
+            }
+
+            .overSelect {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
+            }
+
+            #checkboxes {
+                display: none;
+                border: 1px #dadada solid;
+            }
+
+            #checkboxes label {
+                display: block;
+            }
+
+            #checkboxes label:hover {
+                background-color: #1e90ff;
+            }
+
+        </style>
+    </body>
+    <form>
+        <br>
+        <div class="multiselect">
+            <div class="selectBox" onclick="showCheckboxes()">
+                <select>
+        <option>Выбор уравнения</option>
+      </select>
+                <div class="overSelect"></div>
+            </div>
+            <div id="checkboxes">
+                {% for d in equations %} 
+                  <label for="{{d['name_russian']}}">
+                   <input type="checkbox" id="{{d['name_russian']}}" />{{d['name_russian']}}</label>
+           
+                  {% endfor %} 
+            </div>
+        </div>
+    </form>
+
+
+
+
+
+</body>
+
+</html>

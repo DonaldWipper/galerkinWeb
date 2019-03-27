@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/chartist.min.css') }}">
+    <script src="{{ url_for('static', filename='js/chartist.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chartist.js') }}"></script>
+   <script src="{{
+  url_for('static', filename='js/jquery-1.9.0.js') }}"></script>
+    
+</head>
+
+<body>
+     <div class="ct-chart" style="position: absolute;"></div>
+      <div id="myDiv" style="position: absolute;"></div>
+   
+    <script>
+        var options = {
+            width: '600px',
+            height: '300px',
+            stretch: true
+        };
+        var equations = [
+             {% for t in equations %} {
+                text: "{{t['name']}}",
+                value: {{t['id']}},
+                selected:true
+            },
+             {% endfor %}
+             
+        ]
+         
+        
+        var decisions = {
+            labels: [  {% for p in points %}  
+                     {{p['x']}} ,
+             {% endfor %}],
+            series: [
+                [  {% for p in points %}  
+                 {{p['fx']}} ,
+             {% endfor %}] ,
+                [  {% for p in points %}  
+                 {{p['gx']}} ,
+             {% endfor %}],
+   
+            ]
+        }
+        new Chartist.Line('.ct-chart',  decisions, options);
+    
+      var  myDiv2 = document.getElementById("myDiv");
+        myDiv2.id = "myDiv2";
+        
+      //Create and append select list
+      var selectListEquation = document.createElement("select");
+      selectListEquation.id = "equationSelect";
+      selectListEquation.style.width =  200 + "px";    
+      selectListEquation.style.fontSize = 10;
+    
+      myDiv2.appendChild(selectListEquation);
+
+     //Create and append the options
+     for (var i = 0; i < equations.length; i++) {
+         var option = document.createElement("option");
+         option.value = equations[i]['value'];
+         option.text = equations[i]['text'];
+         selectListEquation.appendChild(option);
+     }
+      selectListEquation.selectedIndex = 0           
+              
+      $("equationSelect").change(function () {
+          var optionSelected = document.getElementById("selectListEquation");
+          //sendIndexToPython(optionSelected.value)
+    
+ });         
+        
+    </script>
+
+</body>
+
+</html>
+
