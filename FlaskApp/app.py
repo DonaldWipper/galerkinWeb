@@ -10,8 +10,7 @@ import csv
 from datetime import date
 from datetime import datetime
 
-import sympy
-import latex
+
 
 db = None
 
